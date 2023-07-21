@@ -1,15 +1,29 @@
 <?php
+namespace uzdevid\abac;
 
-
+use Yii;
 use yii\base\Action;
 use yii\base\ActionFilter;
 use yii\base\Controller;
+use yii\base\Exception;
+use yii\di\NotInstantiableException;
 use yii\web\ForbiddenHttpException;
 use yii\web\IdentityInterface;
 
 class AccessControl extends ActionFilter {
     public function events(): array {
         return [Controller::EVENT_BEFORE_ACTION => 'beforeAction'];
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function init(): void {
+        parent::init();
+
+        if (!(Yii::$app->user->identity instanceof IdentityPermissionInterface)) {
+            throw new NotInstantiableException(Yii::$app->user->identity, 'User must implement IdentityPermissionInterface');
+        }
     }
 
     /**
