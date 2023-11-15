@@ -10,6 +10,8 @@ use yii\base\Exception;
 use yii\web\ForbiddenHttpException;
 
 class AccessControl extends ActionFilter {
+    public array $permissions = [];
+
     public function events(): array {
         return [Controller::EVENT_BEFORE_ACTION => 'beforeAction'];
     }
@@ -23,12 +25,17 @@ class AccessControl extends ActionFilter {
 
     /**
      * @param Action $action
+     *
      * @throws ForbiddenHttpException
      */
     public function beforeAction($action): bool {
         $uniqueId = $action->uniqueId;
 
-        $permission = str_replace('/', '.', $uniqueId);
+        if (isset($this->permissions[$uniqueId])) {
+            $permission = $this->permissions[$uniqueId];
+        } else {
+            $permission = str_replace('/', '.', $uniqueId);
+        }
 
         if (!$this->checkAccess($permission, Yii::$app->user->identity)) {
             throw new ForbiddenHttpException('You are not allowed to perform this action.');
